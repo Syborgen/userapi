@@ -2,7 +2,7 @@ POST http://localhost:3333/api/v1/users
 Content-Type: application/json
 
 {
-  "display_name": "My_test",
+  "display_name": "My_test2",
   "email": "testmail@test.mail"
 }
 
