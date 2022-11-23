@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"refactoring/helper"
 	"refactoring/store"
 	"strconv"
 )
@@ -43,10 +44,30 @@ func (js *JsonStore) GetUser(id string) (store.User, error) {
 
 	user, ok := users[id]
 	if !ok {
-		return store.User{}, fmt.Errorf("user with id %s is not exists", id)
+		return store.User{}, helper.ErrUserNotFound
 	}
 
 	return user, nil
+}
+
+func (js *JsonStore) DeleteUser(id string) error {
+	users, err := js.readUsers()
+	if err != nil {
+		return fmt.Errorf("read users error: %w", err)
+	}
+
+	if _, ok := users[id]; !ok {
+		return helper.ErrUserNotFound
+	}
+
+	delete(users, id)
+
+	err = js.writeUsers(users)
+	if err != nil {
+		return fmt.Errorf("write users error: %w", err)
+	}
+
+	return nil
 }
 
 func (js *JsonStore) readUsers() (store.Users, error) {

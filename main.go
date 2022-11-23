@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -26,10 +25,6 @@ type (
 		Increment int         `json:"increment"`
 		List      store.Users `json:"list"`
 	}
-)
-
-var (
-	ErrUserNotFound = errors.New("user_not_found")
 )
 
 func main() {
@@ -144,7 +139,7 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, helper.ErrInvalidRequest(ErrUserNotFound))
+		_ = render.Render(w, r, helper.ErrInvalidRequest(helper.ErrUserNotFound))
 		return
 	}
 
@@ -159,21 +154,13 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(storeFileName)
-	s := UserStore{}
-	_ = json.Unmarshal(f, &s)
-
 	id := chi.URLParam(r, "id")
 
-	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, helper.ErrInvalidRequest(ErrUserNotFound))
+	err := dataStorage.DeleteUser(id)
+	if err != nil {
+		helper.SendMessage(w, r, fmt.Sprintf("delete user error: %s", err))
 		return
 	}
 
-	delete(s.List, id)
-
-	b, _ := json.Marshal(&s)
-	_ = ioutil.WriteFile(storeFileName, b, fs.ModePerm)
-
-	render.Status(r, http.StatusNoContent)
+	render.Status(r, http.StatusOK)
 }

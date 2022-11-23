@@ -1,10 +1,13 @@
 package helper
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/render"
 )
+
+var ErrUserNotFound = errors.New("user_not_found")
 
 type ErrResponse struct {
 	Err            error `json:"-"`
