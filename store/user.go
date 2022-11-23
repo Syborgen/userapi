@@ -7,3 +7,13 @@ type User struct {
 	DisplayName string    `json:"display_name"`
 	Email       string    `json:"email"`
 }
+
+func (u *User) Update(newUserData User) {
+	if newUserData.DisplayName != "" {
+		u.DisplayName = newUserData.DisplayName
+	}
+
+	if newUserData.Email != "" {
+		u.Email = newUserData.Email
+	}
+}

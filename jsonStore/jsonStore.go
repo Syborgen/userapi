@@ -9,13 +9,13 @@ import (
 	"strconv"
 )
 
-type JsonStore struct {
+type JSONStore struct {
 	FileName string
 
 	lastUserIndex int
 }
 
-func (js *JsonStore) AddUser(user store.User) (int, error) {
+func (js *JSONStore) AddUser(user store.User) (int, error) {
 	users, err := js.readUsers()
 	if err != nil {
 		return 0, fmt.Errorf("read users error: %w", err)
@@ -32,11 +32,11 @@ func (js *JsonStore) AddUser(user store.User) (int, error) {
 	return js.lastUserIndex, nil
 }
 
-func (js *JsonStore) GetUsers() (store.Users, error) {
+func (js *JSONStore) GetUsers() (store.Users, error) {
 	return js.readUsers()
 }
 
-func (js *JsonStore) GetUser(id string) (store.User, error) {
+func (js *JSONStore) GetUser(id string) (store.User, error) {
 	users, err := js.readUsers()
 	if err != nil {
 		return store.User{}, fmt.Errorf("read users error: %w", err)
@@ -50,7 +50,7 @@ func (js *JsonStore) GetUser(id string) (store.User, error) {
 	return user, nil
 }
 
-func (js *JsonStore) DeleteUser(id string) error {
+func (js *JSONStore) DeleteUser(id string) error {
 	users, err := js.readUsers()
 	if err != nil {
 		return fmt.Errorf("read users error: %w", err)
@@ -70,7 +70,29 @@ func (js *JsonStore) DeleteUser(id string) error {
 	return nil
 }
 
-func (js *JsonStore) readUsers() (store.Users, error) {
+func (js *JSONStore) UpdateUser(id string, newUserData store.User) error {
+	users, err := js.readUsers()
+	if err != nil {
+		return fmt.Errorf("read users error: %w", err)
+	}
+
+	userToUpdate, ok := users[id]
+	if !ok {
+		return helper.ErrUserNotFound
+	}
+
+	userToUpdate.Update(newUserData)
+	users[id] = userToUpdate
+
+	err = js.writeUsers(users)
+	if err != nil {
+		return fmt.Errorf("read users error: %w", err)
+	}
+
+	return nil
+}
+
+func (js *JSONStore) readUsers() (store.Users, error) {
 	fileData, err := os.ReadFile(js.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("read file error: %w", err)
@@ -86,7 +108,7 @@ func (js *JsonStore) readUsers() (store.Users, error) {
 	return jsonData.Users, nil
 }
 
-func (js *JsonStore) writeUsers(users map[string]store.User) error {
+func (js *JSONStore) writeUsers(users map[string]store.User) error {
 	dataToWrite := jsonStoreStructure{
 		Increment: js.lastUserIndex,
 		Users:     users,
