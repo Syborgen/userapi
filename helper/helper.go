@@ -32,11 +32,11 @@ func ErrInvalidRequest(err error) render.Renderer {
 	}
 }
 
-func ErrFailedDepencency(err error) render.Renderer {
+func ErrInternalError(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,
-		HTTPStatusCode: 424,
-		StatusText:     "Error in server packages.",
+		HTTPStatusCode: 500,
+		StatusText:     "Server error.",
 		ErrorText:      err.Error(),
 	}
 }

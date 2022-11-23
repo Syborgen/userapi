@@ -18,7 +18,7 @@ var dataStorage store.Store = &jsonstore.JSONStore{FileName: storeFileName}
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := dataStorage.GetUsers()
 	if err != nil {
-		render.Render(w, r, helper.ErrFailedDepencency(err))
+		render.Render(w, r, helper.ErrInternalError(err))
 		return
 	}
 
@@ -40,7 +40,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	newUserID, err := dataStorage.AddUser(newUser)
 	if err != nil {
-		render.Render(w, r, helper.ErrFailedDepencency(err))
+		render.Render(w, r, helper.ErrInternalError(err))
 		return
 	}
 
@@ -55,7 +55,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := dataStorage.GetUser(id)
 	if err != nil {
-		render.Render(w, r, helper.ErrFailedDepencency(err))
+		render.Render(w, r, helper.ErrInternalError(err))
 		return
 	}
 
@@ -78,7 +78,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = dataStorage.UpdateUser(id, newUserData)
 	if err != nil {
-		render.Render(w, r, helper.ErrFailedDepencency(err))
+		render.Render(w, r, helper.ErrInternalError(err))
 		return
 	}
 
@@ -90,7 +90,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	err := dataStorage.DeleteUser(id)
 	if err != nil {
-		render.Render(w, r, helper.ErrFailedDepencency(err))
+		render.Render(w, r, helper.ErrInternalError(err))
 		return
 	}
 
