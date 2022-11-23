@@ -2,6 +2,7 @@ package jsonstore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"refactoring/helper"
@@ -93,6 +94,13 @@ func (js *JSONStore) UpdateUser(id string, newUserData store.User) error {
 }
 
 func (js *JSONStore) readUsers() (store.Users, error) {
+	if !js.isFileExists() {
+		err := js.initStorageFile()
+		if err != nil {
+			return nil, fmt.Errorf("init json storage file error: %w", err)
+		}
+	}
+
 	fileData, err := os.ReadFile(js.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("read file error: %w", err)
@@ -106,6 +114,36 @@ func (js *JSONStore) readUsers() (store.Users, error) {
 
 	js.lastUserIndex = jsonData.Increment
 	return jsonData.Users, nil
+}
+
+func (js *JSONStore) isFileExists() bool {
+	_, err := os.Stat(js.FileName)
+	return !errors.Is(err, os.ErrNotExist)
+}
+
+func (js *JSONStore) initStorageFile() error {
+	file, err := os.Create(js.FileName)
+	if err != nil {
+		return fmt.Errorf("create storage file '%s' error: %w",
+			js.FileName, err)
+	}
+
+	defer file.Close()
+
+	initialStorageStructure, err := json.Marshal(map[string]interface{}{
+		"increment": 0,
+		"users":     struct{}{},
+	})
+	if err != nil {
+		return fmt.Errorf("json marshaling error: %w", err)
+	}
+
+	_, err = file.Write(initialStorageStructure)
+	if err != nil {
+		return fmt.Errorf("write to file error: %w", err)
+	}
+
+	return nil
 }
 
 func (js *JSONStore) writeUsers(users map[string]store.User) error {
