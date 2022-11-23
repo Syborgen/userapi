@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/render"
 )
 
-var ErrUserNotFound = errors.New("user_not_found")
+var ErrUserNotFound = errors.New("user not found")
 
 type ErrResponse struct {
 	Err            error `json:"-"`
@@ -32,8 +32,11 @@ func ErrInvalidRequest(err error) render.Renderer {
 	}
 }
 
-func SendMessage(w http.ResponseWriter, r *http.Request, message string) {
-	render.JSON(w, r, map[string]interface{}{
-		"message": message,
-	})
+func ErrFailedDepencency(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 424,
+		StatusText:     "Error in server packages.",
+		ErrorText:      err.Error(),
+	}
 }

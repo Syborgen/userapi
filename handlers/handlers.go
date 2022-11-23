@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"refactoring/helper"
 	jsonstore "refactoring/jsonStore"
@@ -21,7 +20,7 @@ var dataStorage store.Store = &jsonstore.JSONStore{FileName: storeFileName}
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := dataStorage.GetUsers()
 	if err != nil {
-		helper.SendMessage(w, r, fmt.Sprintf("get users error: %s", err))
+		render.Render(w, r, helper.ErrFailedDepencency(err))
 		return
 	}
 
@@ -49,11 +48,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	request := CreateUserRequest{}
 	err := render.Bind(r, &request)
 	if err != nil {
-		err := render.Render(w, r, helper.ErrInvalidRequest(err))
-		if err != nil {
-			fmt.Println("Render error:", err)
-		}
-
+		render.Render(w, r, helper.ErrInvalidRequest(err))
 		return
 	}
 
@@ -64,7 +59,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	newUserID, err := dataStorage.AddUser(newUser)
 	if err != nil {
-		helper.SendMessage(w, r, fmt.Sprintf("add user error: %s", err))
+		render.Render(w, r, helper.ErrFailedDepencency(err))
 		return
 	}
 
@@ -79,7 +74,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := dataStorage.GetUser(id)
 	if err != nil {
-		helper.SendMessage(w, r, fmt.Sprintf("get user error: %s", err))
+		render.Render(w, r, helper.ErrFailedDepencency(err))
 		return
 	}
 
@@ -109,11 +104,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	request := CreateUserRequest{}
 	err := render.Bind(r, &request)
 	if err != nil {
-		err := render.Render(w, r, helper.ErrInvalidRequest(err))
-		if err != nil {
-			fmt.Println("Render error:", err)
-		}
-
+		render.Render(w, r, helper.ErrInvalidRequest(err))
 		return
 	}
 
@@ -123,11 +114,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = dataStorage.UpdateUser(id, newUserData)
 	if err != nil {
-		helper.SendMessage(w, r, fmt.Sprintf("update user error: %s", err))
+		render.Render(w, r, helper.ErrFailedDepencency(err))
 		return
 	}
 
-	render.Status(r, http.StatusOK)
+	render.Status(r, http.StatusNoContent)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -135,9 +126,9 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	err := dataStorage.DeleteUser(id)
 	if err != nil {
-		helper.SendMessage(w, r, fmt.Sprintf("delete user error: %s", err))
+		render.Render(w, r, helper.ErrFailedDepencency(err))
 		return
 	}
 
-	render.Status(r, http.StatusOK)
+	render.Status(r, http.StatusNoContent)
 }
