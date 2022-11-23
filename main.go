@@ -38,7 +38,6 @@ func main() {
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
-	// r.Use(middleware.Recoverer)
 	router.Use(middleware.Timeout(60 * time.Second))
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +66,8 @@ func main() {
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := dataStorage.GetUsers()
 	if err != nil {
-		return //TODO: Add error message send
+		helper.SendMessage(w, r, fmt.Sprintf("get users error: %s", err))
+		return
 	}
 
 	render.JSON(w, r, users)
@@ -91,7 +91,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Render error:", err)
 		}
 
-		return //TODO: Add error message send
+		return
 	}
 
 	newUser := store.User{
@@ -101,6 +101,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	}
 	newUserID, err := dataStorage.AddUser(newUser)
 	if err != nil {
+		helper.SendMessage(w, r, fmt.Sprintf("add user error: %s", err))
 		return
 	}
 
