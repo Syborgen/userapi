@@ -29,10 +29,13 @@ func (js *JsonStore) AddUser(user store.User) (int, error) {
 	}
 
 	return js.lastUserIndex, nil
-
 }
 
-func (js *JsonStore) readUsers() (map[string]store.User, error) {
+func (js *JsonStore) GetUsers() (store.Users, error) {
+	return js.readUsers()
+}
+
+func (js *JsonStore) readUsers() (store.Users, error) {
 	fileData, err := os.ReadFile(js.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("read file error: %w", err)

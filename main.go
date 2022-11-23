@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"net/http"
+	"refactoring/helper"
 	jsonstore "refactoring/jsonStore"
 	"refactoring/store"
 	"time"
@@ -28,7 +29,7 @@ type (
 )
 
 var (
-	UserNotFound = errors.New("user_not_found")
+	ErrUserNotFound = errors.New("user_not_found")
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 	router.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/users", func(r chi.Router) {
-				r.Get("/", searchUsers)
+				r.Get("/", getUsers)
 				r.Post("/", createUser)
 
 				r.Route("/{id}", func(r chi.Router) {
@@ -63,12 +64,13 @@ func main() {
 	http.ListenAndServe(":3333", router)
 }
 
-func searchUsers(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(storeFileName)
-	s := UserStore{}
-	_ = json.Unmarshal(f, &s)
+func getUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := dataStorage.GetUsers()
+	if err != nil {
+		return //TODO: Add error message send
+	}
 
-	render.JSON(w, r, s.List)
+	render.JSON(w, r, users)
 }
 
 type CreateUserRequest struct {
@@ -84,12 +86,12 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	request := CreateUserRequest{}
 	err := render.Bind(r, &request)
 	if err != nil {
-		err := render.Render(w, r, ErrInvalidRequest(err))
+		err := render.Render(w, r, helper.ErrInvalidRequest(err))
 		if err != nil {
 			fmt.Println("Render error:", err)
 		}
 
-		return
+		return //TODO: Add error message send
 	}
 
 	newUser := store.User{
@@ -132,14 +134,14 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	request := UpdateUserRequest{}
 
 	if err := render.Bind(r, &request); err != nil {
-		_ = render.Render(w, r, ErrInvalidRequest(err))
+		_ = render.Render(w, r, helper.ErrInvalidRequest(err))
 		return
 	}
 
 	id := chi.URLParam(r, "id")
 
 	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
+		_ = render.Render(w, r, helper.ErrInvalidRequest(ErrUserNotFound))
 		return
 	}
 
@@ -161,7 +163,7 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if _, ok := s.List[id]; !ok {
-		_ = render.Render(w, r, ErrInvalidRequest(UserNotFound))
+		_ = render.Render(w, r, helper.ErrInvalidRequest(ErrUserNotFound))
 		return
 	}
 
@@ -171,27 +173,4 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	_ = ioutil.WriteFile(storeFileName, b, fs.ModePerm)
 
 	render.Status(r, http.StatusNoContent)
-}
-
-type ErrResponse struct {
-	Err            error `json:"-"`
-	HTTPStatusCode int   `json:"-"`
-
-	StatusText string `json:"status"`
-	AppCode    int64  `json:"code,omitempty"`
-	ErrorText  string `json:"error,omitempty"`
-}
-
-func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.HTTPStatusCode)
-	return nil
-}
-
-func ErrInvalidRequest(err error) render.Renderer {
-	return &ErrResponse{
-		Err:            err,
-		HTTPStatusCode: 400,
-		StatusText:     "Invalid request.",
-		ErrorText:      err.Error(),
-	}
 }
