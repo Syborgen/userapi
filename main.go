@@ -111,13 +111,15 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
-	f, _ := ioutil.ReadFile(storeFileName)
-	s := UserStore{}
-	_ = json.Unmarshal(f, &s)
-
 	id := chi.URLParam(r, "id")
 
-	render.JSON(w, r, s.List[id])
+	user, err := dataStorage.GetUser(id)
+	if err != nil {
+		helper.SendMessage(w, r, fmt.Sprintf("get user error: %s", err))
+		return
+	}
+
+	render.JSON(w, r, user)
 }
 
 type UpdateUserRequest struct {

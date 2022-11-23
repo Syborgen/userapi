@@ -35,6 +35,20 @@ func (js *JsonStore) GetUsers() (store.Users, error) {
 	return js.readUsers()
 }
 
+func (js *JsonStore) GetUser(id string) (store.User, error) {
+	users, err := js.readUsers()
+	if err != nil {
+		return store.User{}, fmt.Errorf("read users error: %w", err)
+	}
+
+	user, ok := users[id]
+	if !ok {
+		return store.User{}, fmt.Errorf("user with id %s is not exists", id)
+	}
+
+	return user, nil
+}
+
 func (js *JsonStore) readUsers() (store.Users, error) {
 	fileData, err := os.ReadFile(js.FileName)
 	if err != nil {

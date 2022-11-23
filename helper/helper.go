@@ -28,3 +28,9 @@ func ErrInvalidRequest(err error) render.Renderer {
 		ErrorText:      err.Error(),
 	}
 }
+
+func SendMessage(w http.ResponseWriter, r *http.Request, message string) {
+	render.JSON(w, r, map[string]interface{}{
+		"message": message,
+	})
+}
