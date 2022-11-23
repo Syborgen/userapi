@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 	"refactoring/helper"
 	jsonstore "refactoring/jsonStore"
 	"refactoring/store"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -25,23 +23,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.JSON(w, r, users)
-}
-
-type CreateUserRequest struct {
-	DisplayName string `json:"display_name"`
-	Email       string `json:"email"`
-}
-
-func (c *CreateUserRequest) Bind(r *http.Request) error {
-	if c.DisplayName == "" {
-		return errors.New("display_name cannot be empty")
-	}
-
-	if !strings.Contains(c.Email, "@") {
-		return errors.New("email must conatin symbol @")
-	}
-
-	return nil
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -81,23 +62,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, user)
 }
 
-type UpdateUserRequest struct {
-	DisplayName string `json:"display_name"`
-	Email       string `json:"email"`
-}
-
-func (c *UpdateUserRequest) Bind(r *http.Request) error {
-	if c.DisplayName == "" && c.Email == "" {
-		return errors.New("display_name or email must be set")
-	}
-
-	if !strings.Contains(c.Email, "@") {
-		return errors.New("email must conatin symbol @")
-	}
-
-	return nil
-}
-
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -118,7 +82,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Status(r, http.StatusNoContent)
+	render.NoContent(w, r)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -130,5 +94,5 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Status(r, http.StatusNoContent)
+	render.NoContent(w, r)
 }
